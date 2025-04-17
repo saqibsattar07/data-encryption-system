@@ -75,12 +75,14 @@ def encrypt_data(text):
 
 # Function to decrypt data
 def decrypt_data(encrypted_text, passkey):
+    encrypted_text = encrypted_text.strip()  # Clean whitespace
     if st.session_state.current_user not in stored_data:
         return None
     user_data = stored_data[st.session_state.current_user]
     for key, value in user_data.items():
-        if key == encrypted_text:
-            hashed_input = hash_passkey(passkey, value["salt"])
+        if key.strip() == encrypted_text:
+            salt = value["salt"]
+            hashed_input = hash_passkey(passkey, salt)
             if hashed_input == value["passkey"]:
                 st.session_state.failed_attempts = 0
                 return cipher.decrypt(encrypted_text.encode()).decode()
@@ -110,7 +112,7 @@ if choice == "Home":
     st.title("🏠 Welcome to Secure Data Vault")
     st.write("""
         Safely store and retrieve your sensitive information with military-grade encryption.
-        
+
         🔐 Register an account
         🔐 Log in to your vault
         🔐 Store secret notes, passwords, or sensitive messages
@@ -179,7 +181,7 @@ elif choice == "Store Data":
                 stored_data[st.session_state.current_user] = user_dict
                 save_data()
                 st.success("✅ Data stored securely!")
-                st.code(encrypted_text, language="text")
+                st.text_area("Encrypted Data (copy to retrieve):", encrypted_text)
             else:
                 st.error("⚠️ Both fields are required!")
 
@@ -191,7 +193,7 @@ elif choice == "Retrieve Data":
         st.warning("🔒 Too many failed attempts! Please login again.")
     else:
         st.title("🔍 Retrieve Your Secured Data")
-        encrypted_text = st.text_area("Paste Your Encrypted Data")
+        encrypted_text = st.text_area("Paste Your Encrypted Data").strip()
         passkey = st.text_input("Enter Your Passkey", type="password")
 
         if st.button("🔓 Decrypt", use_container_width=True):
