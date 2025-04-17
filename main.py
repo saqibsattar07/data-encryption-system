@@ -36,8 +36,24 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Constants and Global Variables
-KEY = Fernet.generate_key()  # In production, store this securely
+KEY_FILE = "secret.key"
+
+def generate_and_store_key():
+    key = Fernet.generate_key()
+    with open(KEY_FILE, "wb") as key_file:
+        key_file.write(key)
+    return key
+
+def load_key():
+    if os.path.exists(KEY_FILE):
+        with open(KEY_FILE, "rb") as key_file:
+            return key_file.read()
+    else:
+        return generate_and_store_key()
+
+KEY = load_key()
 cipher = Fernet(KEY)
+
 DATA_FILE = "stored_data.json"
 USERS_FILE = "users.json"
 MAX_ATTEMPTS = 3
